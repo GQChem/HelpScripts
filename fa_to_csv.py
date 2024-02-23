@@ -9,6 +9,7 @@ args = parser.parse_args()
 
 import os
 fa_files = os.listdir(args.PMPNN_FA_FOLDER)
+old_sequences = []
 for fa in fa_files:
     if fa.endswith(".fa"):
         data = []
@@ -24,7 +25,12 @@ for fa in fa_files:
                     key,value = p.split("=")
                     seq_data[key] = value
                 seq_data["id"] = fa[:-3] + "_" + seq_data["sample"]
-                data.append(seq_data)
+                if seq_data["sequence"] in old_sequences:
+                    id = seq_data["id"]
+                    print(f"Skipped duplicate: {id}")
+                else:
+                    data.append(seq_data)
+                    old_sequences.append(seq_data["sequence"])
         if len(data) == 0: continue
         old_data = []
         if os.path.exists(args.queries_csv_file):
