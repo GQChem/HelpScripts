@@ -61,9 +61,9 @@ with open(args.af2_log_file,"r") as af2log:
                 scores["model"] = folded_pdb.split("model_")[1][0]
                 scores["pLDDT"] = comps[3].split("=")[1]
                 scores["pTM"] = comps[4].split("=")[1]    
+                name = scores["name"]
                 folded_pdb_file = os.path.join(args.af2_out_folder,f"{name}_unrelaxed_{folded_pdb}"+".pdb")
                 if args.pdb_file.endswith(".pdb"):
-                    name = scores["name"]
                     if os.path.exists(folded_pdb_file):
                         try:
                             scores["RMSD"] = "{:.4f}".format(calculate_rmsd(folded_pdb_file))
