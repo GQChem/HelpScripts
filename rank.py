@@ -89,7 +89,8 @@ if len(data) == 0:
     print("Ranking script couldn't parse output correctly")
 else:
     if args.metric in list(data[0].keys()):
-        ranked_data = sorted(data,key=lambda x: float(x[args.metric]),reverse=True)
+        small_to_big = args.metric == "RMSD"
+        ranked_data = sorted(data,key=lambda x: float(x[args.metric]),reverse=not small_to_big)
     else:
         print(f"Error while ranking, key {args.metric} not found")
         ranked_data = data
