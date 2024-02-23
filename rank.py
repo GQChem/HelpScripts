@@ -156,11 +156,10 @@ if len(ranked_data) > 0 and args.pymol_best_pse > 0:
     N_best = args.pymol_best_pse if args.pymol_best_pse < len(ranked_data) else len(ranked_data)
     for i in range(N_best):
         scores = ranked_data[i]
-        base_name = scores["name"].split["_design_"][0][:-4]
-        design,sequence = scores["name"].split["_design_"][1].split('_')
+        design,sequence = scores["name"].split("_design_")[1].split('_')
         model = scores["model"]
-        short_name = f"{base_name}_d{design}s{sequence}m{model}"
-        cmd.load(scores[i], short_name)
+        short_name = f"d{design}s{sequence}m{model}"
+        cmd.load(scores["path"], short_name)
         cmd.do(f"rank_plddt {short_name}")
         # Align the proteins and calculate RMSD
         rmsd = cmd.align(short_name, "original")[0]  # cmd.align returns a tuple, RMSD is the first element
