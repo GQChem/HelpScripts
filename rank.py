@@ -36,13 +36,13 @@ data = []
 ranked_data = []
 #Find log files in JOB folder
 logfiles = [lf for lf in os.listdir(args.JOB_FOLDER) if lf.startswith("af2") and lf.endswith("log")]
-for logfilename in logfiles:
-    full_path_log = os.path.join(args.JOB_FOLDER,logfilename)
-    with open(full_path_log,"r") as log_file:
+for logfile in logfiles:
+    full_path_log = os.path.join(args.JOB_FOLDER,logfile)
+    with open(full_path_log,"r") as af2log:
         scores = dict()
         query_found = False
         reranking_found = False
-        for logline in log_file:
+        for logline in af2log:
             line = logline.strip()
             if line.startswith("Exception"):
                 query_found = False
