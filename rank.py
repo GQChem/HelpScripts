@@ -1,7 +1,7 @@
 import argparse
 
 parser = argparse.ArgumentParser(description='Makes csv files from ProteinMPNN.fa output ')
-parser.add_argument('JOB_FOLDER', type=str, help = "folder containing af2_NN.log files")
+parser.add_argument('af2_log_file', type=str, help = "Path to af2.log file")
 parser.add_argument('af2_out_folder', type=str, help = "path to af2 generated pdbs")
 parser.add_argument('pdb_file', type=str, help = "RMSD will be included as a metrics. Write - otherwise, don't leave empty!")
 parser.add_argument('rank_output_csv_file', type=str, help = "where to save")
@@ -34,56 +34,52 @@ def calculate_rmsd(folded_path):
 
 data = []
 ranked_data = []
-#Find log files in JOB folder
-logfiles = [lf for lf in os.listdir(args.JOB_FOLDER) if lf.startswith("af2") and lf.endswith("log")]
-for logfile in logfiles:
-    full_path_log = os.path.join(args.JOB_FOLDER,logfile)
-    with open(full_path_log,"r") as af2log:
-        scores = dict()
-        query_found = False
-        reranking_found = False
-        for logline in af2log:
-            line = logline.strip()
-            if line.startswith("Exception"):
-                query_found = False
-                reranking_found = False
-                continue
-            if not query_found:
-                if "Query" in line:
-                    comps = line.split(' ') #date time Query n/N NAME (length LENGTH)
-                    scores["name"] = comps[4]
-                    scores["length"] = comps[-1][:-1]
-                    query_found = True
+with open(args.af2_log_file,"r") as af2log:
+    scores = dict()
+    query_found = False
+    reranking_found = False
+    for logline in af2log:
+        line = logline.strip()
+        if line.startswith("Exception"):
+            query_found = False
+            reranking_found = False
+            continue
+        if not query_found:
+            if "Query" in line:
+                comps = line.split(' ') #date time Query n/N NAME (length LENGTH)
+                scores["name"] = comps[4]
+                scores["length"] = comps[-1][:-1]
+                query_found = True
+        else:
+            if not reranking_found:
+                if "reranking" in line:
+                    reranking_found = True
             else:
-                if not reranking_found:
-                    if "reranking" in line:
-                        reranking_found = True
-                else:
-                    comps = line.split(' ') #date time rank_00N_..._model_M_seed_x pLDDT=... pTM=..
-                    folded_pdb = comps[2]
-                    rank = folded_pdb.split("rank_")[1][2]
-                    scores["model"] = folded_pdb.split("model_")[1][0]
-                    scores["pLDDT"] = comps[3].split("=")[1]
-                    scores["pTM"] = comps[4].split("=")[1]    
-                    folded_pdb_file = os.path.join(args.af2_out_folder,f"{name}_unrelaxed_{folded_pdb}"+".pdb")
-                    if args.pdb_file.endswith(".pdb"):
-                        name = scores["name"]
-                        if os.path.exists(folded_pdb_file):
-                            try:
-                                scores["RMSD"] = "{:.4f}".format(calculate_rmsd(folded_pdb_file))
-                            except Exception:
-                                scores["RMSD"] = "-"
-                        else:
-                            scores["RMSD"] = "-"
+                comps = line.split(' ') #date time rank_00N_..._model_M_seed_x pLDDT=... pTM=..
+                folded_pdb = comps[2]
+                rank = folded_pdb.split("rank_")[1][2]
+                scores["model"] = folded_pdb.split("model_")[1][0]
+                scores["pLDDT"] = comps[3].split("=")[1]
+                scores["pTM"] = comps[4].split("=")[1]    
+                folded_pdb_file = os.path.join(args.af2_out_folder,f"{name}_unrelaxed_{folded_pdb}"+".pdb")
+                if args.pdb_file.endswith(".pdb"):
+                    name = scores["name"]
                     if os.path.exists(folded_pdb_file):
-                        scores["path"] = folded_pdb_file
+                        try:
+                            scores["RMSD"] = "{:.4f}".format(calculate_rmsd(folded_pdb_file))
+                        except Exception:
+                            scores["RMSD"] = "-"
                     else:
-                        scores["path"] = "-"
-                    data.append(scores)
-                    scores = dict()
-                    if args.only_first or rank == "5":
-                        query_found = False
-                        reranking_found = False
+                        scores["RMSD"] = "-"
+                if os.path.exists(folded_pdb_file):
+                    scores["path"] = folded_pdb_file
+                else:
+                    scores["path"] = "-"
+                data.append(scores)
+                scores = dict()
+                if args.only_first or rank == "5":
+                    query_found = False
+                    reranking_found = False
 
 if len(data) == 0: 
     print("Ranking script couldn't parse output correctly")
