@@ -27,7 +27,7 @@ wget http://files.ipd.uw.edu/pub/RFdiffusion/12fc204edeae5b57713c5ad7dcb97d39/Ba
 echo
 echo B.iii Setting up environment ProteinEnv
 cd ../env
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/443bc562c91112ec2606435c48b0514ce6a5b249/ProteinEnv.yml
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/ProteinEnv.yml
 module load mamba
 mamba env create -f ProteinEnv.yml 
 mamba activate ProteinEnv
@@ -54,17 +54,17 @@ echo D. HELP SCRIPTS
 echo
 mkdir HelpScripts
 cd HelpScripts
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/HelpScripts/af2_make_pse.py
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/HelpScripts/fa_to_csv.py
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/HelpScripts/make_fixed_dict.py
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/HelpScripts/rank.py
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/af2_make_pse.py
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/fa_to_csv.py
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/make_fixed_dict.py
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/rank.py
 cd ..
 
 echo
 echo E. COPYING JUPYTER NOTEBOOKS in home
 cd ..
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/AlphaFold.ipynb
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/ProteinMPNN.ipynb
-wget https://gitlab.uzh.ch/locbp/proteinmodels/-/blob/e5f8ae8c4c4e6ed64280cfb57877335a5d0cc87a/RFdiffusion.ipynb
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/AlphaFold.ipynb
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/ProteinMPNN.ipynb
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/RFdiffusion.ipynb
 echo
 echo DONE!
