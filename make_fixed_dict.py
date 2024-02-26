@@ -6,6 +6,7 @@ parser.add_argument('rfd_log_file', type=str, help = "Path to rfd.log file")
 parser.add_argument('FIXED', type=str, help="rfd or pymol selection")
 parser.add_argument('FIXED_CHAIN', type=str, help="A or B or whatever")
 parser.add_argument('fixed_jsonl_file', type=str, help="output file")
+parser.add_argument('sele_csv_file', type=str, help="output file with selections of fixed and mobile parts")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -31,15 +32,35 @@ def sele_to_list(s):
         else:
             a.append(int(s))     
     return a
+def list_to_sele(a):
+    s = ""
+    i = 0
+    while i < len(a):   
+        if i > 0: s += "+"
+        s += f"{a[i]}"   
+        #represent consecutive indeces with a dash
+        if i < len(a) - 1:
+            if int(a[i])+1 == int(a[i+1]):
+                s += "-"
+                j = i + 2
+                while j < len(a):
+                    if int(a[j]) != int(a[j-1])+1: break
+                    j += 1
+                i = j - 1
+                s += f"{a[i]}" 
+        i += 1        
+    return s
 
 import os
 design_names = [d[:-4] for d in os.listdir(args.JOB_FOLDER) if d.endswith(".pdb")]
 fixed_dict = dict()
+mobile_dict = dict()
 if args.FIXED == "rfd": #derive from logfile
     with open(args.rfd_log_file,"r") as rfdlog:
         all_log = [line.strip() for line in rfdlog.readlines()]
         for name in design_names:
             fixed_dict[name] = dict()
+            mobile_dict[name] = dict()
             seq = ""
             #The sequence input is found a few lines after RFD says it is designing something
             log_found = False
@@ -53,13 +74,24 @@ if args.FIXED == "rfd": #derive from logfile
                         seq = line.split(" ")[-1]
                         break
             fixed_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x != "-"]
+            mobile_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x == "-"]
 else:
     for name in design_names:
         fixed_dict[name] = dict()
         fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(args.FIXED)
+        mobile_dict[name] = dict()
+        mobile_dict[name][args.FIXED_CHAIN] = []
+
 with open(args.fixed_jsonl_file,"w") as jsonl_file:
     #Python converts dictionaries to string having keys inside '', json only recognises ""
     jsonl_file.write(str(fixed_dict).replace("\'","\""))
+with open(args.sele_csv_file,"w") as csv_file:
+    csv_file.write("id,fixed,mobile")
+    for id in fixed_dict.keys():
+        fixed = list_to_sele(fixed_dict[id][args.FIXED_CHAIN])
+        mobile = list_to_sele(mobile_dict[id][args.FIXED_CHAIN])
+        csv_file.write("\n")
+        csv_file.write(f"{id},{fixed},{mobile}")
 
 #Dictionary of fixed positions looks like this
 #{"5TTA": {"A": [1, 2, 3, 7, 8, 9, 22, 25, 33], "B": []}, "3LIS": {"A": [], "B": []}}

@@ -2,6 +2,9 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Makes csv files from ProteinMPNN.fa output ')
 parser.add_argument('af2_log_file', type=str, help = "Path to af2.log file")
+parser.add_argument('queries_csv_file', type=str, help = "Path to af2.log file")
+parser.add_argument('num_pmpnn_seq', type=int, help = "Number of sequences per design")
+parser.add_argument('sele_csv_file', type=str, help = "Path to af2.log file")
 parser.add_argument('af2_out_folder', type=str, help = "path to af2 generated pdbs")
 parser.add_argument('pdb_file', type=str, help = "RMSD will be included as a metrics. Write - otherwise, don't leave empty!")
 parser.add_argument('rank_output_csv_file', type=str, help = "where to save")
@@ -18,19 +21,59 @@ import os
 
 import pymol
 from pymol import cmd
+# Initialize PyMOL in headless mode (no GUI)
+pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
+pymol.finish_launching()
+#Some settings for the session to have good pictures
+cmd.do("show cartoon")
+cmd.set("seq_view", 1)
+cmd.set("cartoon_gap_cutoff", 0)
+cmd.set("sphere_scale", 0.2)
+cmd.set("ray_trace_mode", 1)
+cmd.set("ray_shadows", 0)
+cmd.set("spec_reflect", 0)
+cmd.set("ray_trace_frames", 1)
+cmd.set("ray_trace_color", "gray20")
 
 if args.pdb_file.endswith(".pdb"):
     cmd.load(args.pdb_file, "original")
 def calculate_rmsd(folded_path):
-    # Initialize PyMOL in headless mode (no GUI)
-    pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
-    pymol.finish_launching()
     # Load the two protein structures
     cmd.load(folded_path, "folded")
     # Align the proteins and calculate RMSD
     rmsd = cmd.align("original", "folded")[0]  # cmd.align returns a tuple, RMSD is the first element
     cmd.delete("folded")
     return rmsd
+
+#queries_csv_file
+#sele_csv_file
+pmpnn_data = {}
+pmpnn_keys = []
+with open(args.sele_csv_file,"r") as sele_csv:
+    keys = sele_csv.readline().strip().split(",") #id,fixed,mobile
+    non_id_keys = keys[1:]
+    for k in non_id_keys:
+        pmpnn_keys.append(k)
+    for line in sele_csv:
+        values = line.strip().split(',')
+        id = values[0]
+        non_id_values = values[1:]
+        for n in range(args.num_pmpnn_seq):
+            name = f"{id}_{n+1}"
+            pmpnn_data[name] = dict()
+            for i in range(len(non_id_keys)):
+                pmpnn_data[name][non_id_keys[i]] = non_id_values[i]
+with open(args.queries_csv_file,"r") as queries_csv:
+    keys = queries_csv.readline().strip().split(",") #id,sequence,T,sample,score,global_score,seq_recovery
+    non_id_keys = keys[1:]
+    for k in non_id_keys:
+        pmpnn_keys.append(k)
+    for line in queries_csv:
+        values = line.strip().split(',')
+        name = values[0]
+        non_id_values = values[1:]
+        for i in range(len(non_id_keys)):
+            pmpnn_data[name][non_id_keys[i]] = non_id_values[i]
 
 data = []
 ranked_data = []
@@ -70,7 +113,11 @@ with open(args.af2_log_file,"r") as af2log:
                         except Exception:
                             scores["RMSD"] = "-"
                     else:
-                        scores["RMSD"] = "-"
+                        scores["RMSD"] = "-"                
+                #Add data from MPNN
+                for k in pmpnn_keys:
+                    scores[k] = pmpnn_data[name][k]
+                #path at last
                 if os.path.exists(folded_pdb_file):
                     scores["path"] = folded_pdb_file
                 else:
@@ -150,10 +197,16 @@ def plddt(selection="all"):
     cmd.set_color('orange_plddt', orange)
     cmd.color('orange_plddt', 'very_low')
     cmd.deselect()
+    cmd.delete('very_high')
+    cmd.delete('confident')
+    cmd.delete('low')
+    cmd.delete('very_low')
 cmd.extend('rank_plddt', plddt)
 
 if len(ranked_data) > 0 and args.pymol_best_pse > 0:
     N_best = args.pymol_best_pse if args.pymol_best_pse < len(ranked_data) else len(ranked_data)
+    cmd.load(args.pdb_file, "original")
+    cmd.color("bluewhite","original")
     for i in range(N_best):
         scores = ranked_data[i]
         name = scores["name"]
@@ -164,10 +217,16 @@ if len(ranked_data) > 0 and args.pymol_best_pse > 0:
         else:
             sequence = name.split("_unrelaxed_")[0].split("_")[-1]
             short_name = f"s{sequence}m{model}"
-        cmd.load(scores["path"], short_name)
-        cmd.do(f"rank_plddt {short_name}")
-        # Align the proteins and calculate RMSD
-        rmsd = cmd.align(short_name, "original")[0]  # cmd.align returns a tuple, RMSD is the first element
+        pLDDT_obj = f"{short_name}_pLDDT"
+        cmd.load(scores["path"], pLDDT_obj)
+        cmd.do(f"rank_plddt {pLDDT_obj}")
+        cmd.align(pLDDT_obj, "original")
+        mobile_obj = f"{short_name}_mobile"
+        cmd.load(scores["path"], mobile_obj)
+        cmd.color("hotpink",mobile_obj)
+        fixed_sele = scores["fixed"]
+        cmd.color("gray80",f"{mobile_obj} and resi {fixed_sele}")
+        cmd.align(mobile_obj, "original")
     cmd.save(args.pymol_pse_file)
 
 cmd.quit()
