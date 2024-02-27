@@ -40,8 +40,8 @@ if args.pdb_file.endswith(".pdb"):
 def calculate_rmsd(folded_path):
     # Load the two protein structures
     cmd.load(folded_path, "folded")
-    # Align the proteins and calculate RMSD
-    rmsd = cmd.align("original", "folded")[0]  # cmd.align returns a tuple, RMSD is the first element
+    # Align the proteins and calculate RMSD from backbone
+    rmsd = cmd.align("original and name CA+C+N+O", "folded and name CA+C+N+O")[0]  # cmd.align returns a tuple, RMSD is the first element
     cmd.delete("folded")
     return rmsd
 
