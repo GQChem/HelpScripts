@@ -3,6 +3,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Makes pse file from af2 output')
 parser.add_argument('af2_out_folder', type=str, help = "path to af2 generated pdbs")
 parser.add_argument('pymol_pse_file', type=str, help = "Path to pymol session to be created")
+parser.add_argument('only_first', type=bool, help = "Only compare the best folding of each sequence generated")
 
 # Parse the arguments
 args = parser.parse_args()
@@ -90,6 +91,8 @@ for pdb in pdb_files:
     rank = pdb.split("_rank_")[1][0:3]
     model = pdb.split("_model_")[1][0]
     short_name = f"r{rank}m{model}"
+    if args.only_first and rank != "001": 
+        continue
     pdb_file = os.path.join(args.af2_out_folder,pdb)
     cmd.load(pdb_file, short_name)
     cmd.do(f"rank_plddt {short_name}")
