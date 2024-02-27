@@ -93,6 +93,7 @@ for pdb in pdb_files:
     pdb_file = os.path.join(args.af2_out_folder,pdb)
     cmd.load(pdb_file, short_name)
     cmd.do(f"rank_plddt {short_name}")
+    short_names.append(short_name)
 
 if len(short_names) > 1:
     for sn in short_names[1:]:
