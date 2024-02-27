@@ -30,7 +30,7 @@ cd ../env
 wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/ProteinEnv.yml
 module load mamba
 mamba env create -f ProteinEnv.yml 
-mamba activate ProteinEnv
+conda activate ProteinEnv
 echo
 echo B.iv Installing...
 cd SE3Transformer
