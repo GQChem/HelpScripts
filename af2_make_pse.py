@@ -86,21 +86,26 @@ cmd.set("ray_trace_frames", 1)
 cmd.set("ray_trace_color", "gray20")
 
 pdb_files = [f for f in os.listdir(args.af2_out_folder) if f.endswith(".pdb")]
-short_names = []
+allow_shortname = True
+if len(pdb_files) > 9: #two give 10
+    allow_shortname = False
+
+prot_names = []
 for pdb in pdb_files:
-    rank = pdb.split("_rank_")[1][0:3]
-    model = pdb.split("_model_")[1][0]
-    short_name = f"r{rank}m{model}"
-    if args.only_first and rank != "001": 
+    longname = pdb.split("_unrelaxed_")[0] if "_unrelaxed_" in pdb else pdb.split("_relaxed_")[0]
+    rank = pdb.split("_rank_")[1][2]
+    if args.only_first and rank != "1": 
         continue
+    model = pdb.split("_model_")[1][0]
+    short_name = f"r{rank}m{model}" if allow_shortname else f"{longname}_r{rank}m{model}"
     pdb_file = os.path.join(args.af2_out_folder,pdb)
     cmd.load(pdb_file, short_name)
     cmd.do(f"rank_plddt {short_name}")
-    short_names.append(short_name)
+    prot_names.append(short_name)
 
-if len(short_names) > 1:
-    for sn in short_names[1:]:
-        cmd.align(sn, short_names[0])
+if len(prot_names) > 1:
+    for sn in prot_names[1:]:
+        cmd.align(sn, prot_names[0])
 
 cmd.save(args.pymol_pse_file)
 

@@ -3,6 +3,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Reads RFD log to create fixed positions')
 parser.add_argument('JOB_FOLDER', type=str, help="")
 parser.add_argument('rfd_log_file', type=str, help = "Path to rfd.log file")
+parser.add_argument('pLDDT_thr', type=float, help="Will consider residues with pLDDT > threshold as fixed ")
 parser.add_argument('FIXED', type=str, help="rfd or pymol selection")
 parser.add_argument('FIXED_CHAIN', type=str, help="A or B or whatever")
 parser.add_argument('fixed_jsonl_file', type=str, help="output file")
@@ -52,6 +53,9 @@ def list_to_sele(a):
     return s
 
 import os
+import pymol
+from pymol import cmd
+
 design_names = [d[:-4] for d in os.listdir(args.JOB_FOLDER) if d.endswith(".pdb")]
 fixed_dict = dict()
 mobile_dict = dict()
@@ -76,11 +80,33 @@ if args.FIXED == "rfd": #derive from logfile
             fixed_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x != "-"]
             mobile_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x == "-"]
 else:
+    #not rfd
+    if args.pLDDT_thr < 100:
+        # Initialize PyMOL in headless mode (no GUI)
+        pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
+        pymol.finish_launching()
     for name in design_names:
         fixed_dict[name] = dict()
-        fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(args.FIXED)
         mobile_dict[name] = dict()
-        mobile_dict[name][args.FIXED_CHAIN] = []
+        if args.pLDDT_thr < 100:
+            pdb_file = os.path.join(args.JOB_FOLDER,name+".pdb")
+            cmd.load(pdb_file,"prot")
+            fixed_residues = []
+            mobile_residues = []
+            atom_iterator = cmd.get_model("prot and name CA")
+            for atom in atom_iterator.atom:
+                if atom.b < args.pLDDT_thr:
+                    if int(atom.resi) not in mobile_residues:
+                        mobile_residues.append(int(atom.resi))
+                else:
+                    if int(atom.resi) not in fixed_residues:
+                        fixed_residues.append(int(atom.resi))
+            cmd.delete("prot")
+            fixed_dict[name][args.FIXED_CHAIN] = fixed_residues[:]
+            mobile_dict[name][args.FIXED_CHAIN] = mobile_residues[:]
+        else:
+            fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(args.FIXED)
+            mobile_dict[name][args.FIXED_CHAIN] = []
 
 with open(args.fixed_jsonl_file,"w") as jsonl_file:
     #Python converts dictionaries to string having keys inside '', json only recognises ""
