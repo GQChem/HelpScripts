@@ -22,6 +22,7 @@ for atom in atom_iterator.atom:
     residues_inspected.append(resi)
 cmd.delete("prot")
 previous_pLDDT = int(pLDDT_sum * 1.0 / len(residues_inspected))
+print(f"Previous pLDDT: {previous_pLDDT}")
 cmd.quit()
 
 import shutil
@@ -41,5 +42,5 @@ with open(args.old_rank_output_csv_file,"r") as ranked_csv:
         print(f"Sequence: {best_seq}")
         shutil.copy(best_path,args.pdb_file)  
     else:
-        print(f"No improvement in pLDDT. Best is {best_pLDDT} vs {previous_pLDDT} previously.")
+        print(f"No improvement in pLDDT. Best is {best_pLDDT}")
         shutil.copy(args.previous_pdb_file,args.pdb_file)  

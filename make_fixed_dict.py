@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser(description='Reads RFD log to create fixed posi
 parser.add_argument('JOB_FOLDER', type=str, help="")
 parser.add_argument('rfd_log_file', type=str, help = "Path to rfd.log file")
 parser.add_argument('pLDDT_thr', type=float, help="Will consider residues with pLDDT > threshold as fixed ")
-parser.add_argument('FIXED', type=str, help="rfd or pymol selection")
+parser.add_argument('FIXED', type=str, help="rfd or pymol selection or -")
 parser.add_argument('FIXED_CHAIN', type=str, help="A or B or whatever")
 parser.add_argument('fixed_jsonl_file', type=str, help="output file")
 parser.add_argument('sele_csv_file', type=str, help="output file with selections of fixed and mobile parts")
@@ -80,6 +80,7 @@ if args.FIXED == "rfd": #derive from logfile
             fixed_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x != "-"]
             mobile_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x == "-"]
 else:
+    FIXED = args.FIXED if args.FIXED != '-' else ''
     #not rfd
     if args.pLDDT_thr < 100:
         # Initialize PyMOL in headless mode (no GUI)
@@ -94,7 +95,7 @@ else:
             fixed_residues = []
             mobile_residues = []
             atom_iterator = cmd.get_model("prot and name CA")
-            parfixed = sele_to_list(args.FIXED)
+            parfixed = sele_to_list(FIXED)
             for atom in atom_iterator.atom:
                 resi = int(atom.resi)
                 if atom.b < args.pLDDT_thr and not resi in parfixed:
@@ -107,7 +108,7 @@ else:
             fixed_dict[name][args.FIXED_CHAIN] = fixed_residues[:]
             mobile_dict[name][args.FIXED_CHAIN] = mobile_residues[:]
         else:
-            fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(args.FIXED)
+            fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(FIXED)
             mobile_dict[name][args.FIXED_CHAIN] = []
 
 cmd.quit()
