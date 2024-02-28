@@ -110,6 +110,8 @@ else:
             fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(args.FIXED)
             mobile_dict[name][args.FIXED_CHAIN] = []
 
+cmd.quit()
+
 with open(args.fixed_jsonl_file,"w") as jsonl_file:
     #Python converts dictionaries to string having keys inside '', json only recognises ""
     jsonl_file.write(str(fixed_dict).replace("\'","\""))

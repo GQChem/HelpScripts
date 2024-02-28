@@ -2,21 +2,44 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Copy best pdb from one cycle to the next one in PMPNN_AF2_Loop')
 parser.add_argument('old_rank_output_csv_file', type=str)
-parser.add_argument('pdb_file', type=str)
+parser.add_argument('previous_pdb_file', type=str, help="path to previous best pdb")
+parser.add_argument('pdb_file', type=str,help = "path to where the best of the previous cycle will be")
 
 # Parse the arguments
 args = parser.parse_args()
+
+import pymol
+from pymol import cmd
+
+cmd.load(args.previous_pdb_file,"prot")
+atom_iterator = cmd.get_model("prot and name CA")
+residues_inspected = []
+pLDDT_sum = 0
+for atom in atom_iterator.atom:
+    resi = int(atom.resi)
+    if resi in residues_inspected: continue
+    pLDDT_sum += atom.b
+    residues_inspected.append(resi)
+cmd.delete("prot")
+previous_pLDDT = int(pLDDT_sum * 1.0 / len(residues_inspected))
+cmd.quit()
 
 import shutil
 
 #retrieve path of best one
 with open(args.old_rank_output_csv_file,"r") as ranked_csv:
     data_keys = ranked_csv.readline().strip().split(',')
+    pLDDT_index = data_keys.index("pLDDT")
     seq_index = data_keys.index("sequence")
     path_index = data_keys.index("path")
     best_data = ranked_csv.readline().strip().split(',')
-    best_path = best_data[path_index]
-    best_seq = best_data[seq_index]
-    print(f"Best PDB: {best_path}")
-    print(f"Sequence: {best_seq}")
-    shutil.copy(best_path,args.pdb_file)  
+    best_pLDDT = int(best_data[pLDDT_index])
+    if best_pLDDT > previous_pLDDT:
+        best_path = best_data[path_index]
+        best_seq = best_data[seq_index]
+        print(f"Best PDB: {best_path}")
+        print(f"Sequence: {best_seq}")
+        shutil.copy(best_path,args.pdb_file)  
+    else:
+        print(f"No improvement in pLDDT. Best is {best_pLDDT} vs {previous_pLDDT} previously.")
+        shutil.copy(args.previous_pdb_file,args.pdb_file)  

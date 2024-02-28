@@ -31,7 +31,6 @@ pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
 pymol.finish_launching()
 #Some settings for the session to have good pictures
 cmd.do("show cartoon")
-cmd.set("seq_view", 1)
 cmd.set("cartoon_gap_cutoff", 0)
 cmd.set("sphere_scale", 0.2)
 cmd.set("ray_trace_mode", 1)
