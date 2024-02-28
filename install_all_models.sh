@@ -50,22 +50,10 @@ cd ..
 git clone https://github.com/dauparas/ProteinMPNN
 
 echo
-echo D. HELP SCRIPTS
-echo
-mkdir HelpScripts
-cd HelpScripts
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/af2_make_pse.py
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/fa_to_csv.py
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/make_fixed_dict.py
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/rank.py
-cd ..
+echo D. HELP SCRIPTS AND NOTEBOOKS
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/update_notebooks.sh
+chmod +x update_notebooks.sh
+bash update_notebooks.sh
+rm update_notebooks.sh
 
-echo
-echo E. COPYING JUPYTER NOTEBOOKS in home
-cd ..
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/AlphaFold.ipynb
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/ProteinMPNN.ipynb
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/RFdiffusion.ipynb
-wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/PMPNN_AF2_Loop.ipynb
-echo
 echo DONE!
