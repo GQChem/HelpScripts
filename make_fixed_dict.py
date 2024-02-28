@@ -94,12 +94,14 @@ else:
             fixed_residues = []
             mobile_residues = []
             atom_iterator = cmd.get_model("prot and name CA")
+            parfixed = sele_to_list(args.FIXED)
             for atom in atom_iterator.atom:
-                if atom.b < args.pLDDT_thr:
-                    if int(atom.resi) not in mobile_residues:
+                resi = int(atom.resi)
+                if atom.b < args.pLDDT_thr and not resi in parfixed:
+                    if not resi in mobile_residues:
                         mobile_residues.append(int(atom.resi))
                 else:
-                    if int(atom.resi) not in fixed_residues:
+                    if not resi in fixed_residues:
                         fixed_residues.append(int(atom.resi))
             cmd.delete("prot")
             fixed_dict[name][args.FIXED_CHAIN] = fixed_residues[:]
