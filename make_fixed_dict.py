@@ -9,6 +9,7 @@ parser.add_argument('FIXED_CHAIN', type=str, help="A or B or whatever")
 parser.add_argument('fixed_jsonl_file', type=str, help="output file")
 parser.add_argument('sele_csv_file', type=str, help="output file with selections of fixed and mobile parts")
 
+
 # Parse the arguments
 args = parser.parse_args()
 
@@ -81,7 +82,7 @@ if args.FIXED == "rfd": #derive from logfile
             mobile_dict[name][args.FIXED_CHAIN] = [i+1 for i, x in enumerate(seq) if x == "-"]
 else:
     FIXED = args.FIXED if args.FIXED != '-' else ''
-    #not rfd
+    #not rfd: there is no pLDDT in the rfd output!
     if args.pLDDT_thr < 100:
         # Initialize PyMOL in headless mode (no GUI)
         pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
@@ -111,8 +112,6 @@ else:
             fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(FIXED)
             mobile_dict[name][args.FIXED_CHAIN] = []
 
-cmd.quit()
-
 with open(args.fixed_jsonl_file,"w") as jsonl_file:
     #Python converts dictionaries to string having keys inside '', json only recognises ""
     jsonl_file.write(str(fixed_dict).replace("\'","\""))
@@ -123,6 +122,9 @@ with open(args.sele_csv_file,"w") as csv_file:
         mobile = list_to_sele(mobile_dict[id][args.FIXED_CHAIN])
         csv_file.write("\n")
         csv_file.write(f"{id},{fixed},{mobile}")
-
+        
 #Dictionary of fixed positions looks like this
 #{"5TTA": {"A": [1, 2, 3, 7, 8, 9, 22, 25, 33], "B": []}, "3LIS": {"A": [], "B": []}}
+
+if args.pLDDT_thr < 100:    
+    cmd.quit() #MUST ALWAYS BE AT THE END OF THE SCRIPT
