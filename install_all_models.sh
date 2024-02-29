@@ -54,6 +54,5 @@ echo D. HELP SCRIPTS AND NOTEBOOKS
 wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/update_notebooks.sh
 chmod +x update_notebooks.sh
 bash update_notebooks.sh
-rm update_notebooks.sh
 
 echo DONE!

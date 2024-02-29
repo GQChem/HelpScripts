@@ -63,7 +63,7 @@ cmd.extend('rank_plddt', plddt)
 
 
 # Initialize PyMOL in headless mode (no GUI)
-pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
+pymol.pymol_argv = ['pymol', '-c']  # -q for quiet, -c for no GUI
 pymol.finish_launching()
 #Some settings for the session to have good pictures
 cmd.do("show cartoon")

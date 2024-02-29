@@ -21,28 +21,42 @@ import os
 
 import pymol
 from pymol import cmd
-# Initialize PyMOL in headless mode (no GUI)
-pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
-pymol.finish_launching()
-#Some settings for the session to have good pictures
-cmd.do("show cartoon")
-cmd.set("cartoon_gap_cutoff", 0)
-cmd.set("sphere_scale", 0.2)
-cmd.set("ray_trace_mode", 1)
-cmd.set("ray_shadows", 0)
-cmd.set("spec_reflect", 0)
-cmd.set("ray_trace_frames", 1)
-cmd.set("ray_trace_color", "gray20")
+try:
+    # Initialize PyMOL in headless mode (no GUI)
+    pymol.pymol_argv = ['pymol', '-c']  # -q for quiet, -c for no GUI
+    pymol.finish_launching()
+    #Some settings for the session to have good pictures
+    cmd.do("show cartoon")
+    cmd.set("cartoon_gap_cutoff", 0)
+    cmd.set("sphere_scale", 0.2)
+    cmd.set("ray_trace_mode", 1)
+    cmd.set("ray_shadows", 0)
+    cmd.set("spec_reflect", 0)
+    cmd.set("ray_trace_frames", 1)
+    cmd.set("ray_trace_color", "gray20")
+except Exception as e:
+    print("Error while initializing pymol")
+    print(str(e))
 
 if args.pdb_file.endswith(".pdb"):
-    cmd.load(args.pdb_file, "original")
+    try:    
+        cmd.load(args.pdb_file, "original")
+    except Exception as e:
+        print("Error while loading original")
+        print(str(e))
+
 def calculate_rmsd(folded_path):
-    # Load the two protein structures
-    cmd.load(folded_path, "folded")
-    # Align the proteins and calculate RMSD from backbone
-    rmsd = cmd.align("original and name CA+C+N+O", "folded and name CA+C+N+O")[0]  # cmd.align returns a tuple, RMSD is the first element
-    cmd.delete("folded")
-    return rmsd
+    try:    
+        # Load the two protein structures
+        cmd.load(folded_path, "folded")
+        # Align the proteins and calculate RMSD from backbone
+        rmsd = cmd.align("original and name CA+C+N+O", "folded and name CA+C+N+O")[0]  # cmd.align returns a tuple, RMSD is the first element
+        cmd.delete("folded")
+        return rmsd
+    except Exception as e:
+        print("Error while calculating rmsd")
+        print(str(e))
+    return -1
 
 #queries_csv_file
 #sele_csv_file
@@ -107,10 +121,7 @@ with open(args.af2_log_file,"r") as af2log:
                 folded_pdb_file = os.path.join(args.af2_out_folder,f"{name}_unrelaxed_{folded_pdb}"+".pdb")
                 if args.pdb_file.endswith(".pdb"):
                     if os.path.exists(folded_pdb_file):
-                        try:
-                            scores["RMSD"] = "{:.4f}".format(calculate_rmsd(folded_pdb_file))
-                        except Exception:
-                            scores["RMSD"] = "-"
+                        scores["RMSD"] = "{:.4f}".format(calculate_rmsd(folded_pdb_file))
                     else:
                         scores["RMSD"] = "-"                
                 #Add data from MPNN

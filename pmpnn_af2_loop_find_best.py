@@ -11,17 +11,25 @@ args = parser.parse_args()
 import pymol
 from pymol import cmd
 
-cmd.load(args.previous_pdb_file,"prot")
-atom_iterator = cmd.get_model("prot and name CA")
-residues_inspected = []
-pLDDT_sum = 0
-for atom in atom_iterator.atom:
-    resi = int(atom.resi)
-    if resi in residues_inspected: continue
-    pLDDT_sum += atom.b
-    residues_inspected.append(resi)
-cmd.delete("prot")
-previous_pLDDT = pLDDT_sum * 1.0 / len(residues_inspected)
+try:
+    # Initialize PyMOL in headless mode (no GUI)
+    pymol.pymol_argv = ['pymol', '-c']  # -q for quiet, -c for no GUI
+    pymol.finish_launching()
+    cmd.load(args.previous_pdb_file,"prot")
+    atom_iterator = cmd.get_model("prot and name CA")
+    residues_inspected = []
+    pLDDT_sum = 0
+    for atom in atom_iterator.atom:
+        resi = int(atom.resi)
+        if resi in residues_inspected: continue
+        pLDDT_sum += atom.b
+        residues_inspected.append(resi)
+    cmd.delete("prot")
+    previous_pLDDT = pLDDT_sum * 1.0 / len(residues_inspected)
+except Exception as e:
+    print("Error while determining pLDDT of last input")
+    print(str(e))
+    previous_pLDDT = 0
 print(f"Previous pLDDT: {previous_pLDDT:.1f}")
 
 import shutil

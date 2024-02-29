@@ -84,30 +84,40 @@ else:
     FIXED = args.FIXED if args.FIXED != '-' else ''
     #not rfd: there is no pLDDT in the rfd output!
     if args.pLDDT_thr < 100:
-        # Initialize PyMOL in headless mode (no GUI)
-        pymol.pymol_argv = ['pymol', '-qc']  # -q for quiet, -c for no GUI
-        pymol.finish_launching()
+        try:
+            # Initialize PyMOL in headless mode (no GUI)
+            pymol.pymol_argv = ['pymol', '-c']  # -q for quiet, -c for no GUI
+            pymol.finish_launching()
+        except Exception as e:
+            print("Error while initializing pymol")
+            print(str(e))
     for name in design_names:
         fixed_dict[name] = dict()
         mobile_dict[name] = dict()
         if args.pLDDT_thr < 100:
             pdb_file = os.path.join(args.JOB_FOLDER,name+".pdb")
-            cmd.load(pdb_file,"prot")
-            fixed_residues = []
-            mobile_residues = []
-            atom_iterator = cmd.get_model("prot and name CA")
-            parfixed = sele_to_list(FIXED)
-            for atom in atom_iterator.atom:
-                resi = int(atom.resi)
-                if atom.b < args.pLDDT_thr and not resi in parfixed:
-                    if not resi in mobile_residues:
-                        mobile_residues.append(int(atom.resi))
-                else:
-                    if not resi in fixed_residues:
-                        fixed_residues.append(int(atom.resi))
-            cmd.delete("prot")
-            fixed_dict[name][args.FIXED_CHAIN] = fixed_residues[:]
-            mobile_dict[name][args.FIXED_CHAIN] = mobile_residues[:]
+            try:
+                cmd.load(pdb_file,"prot")
+                fixed_residues = []
+                mobile_residues = []
+                atom_iterator = cmd.get_model("prot and name CA")
+                parfixed = sele_to_list(FIXED)
+                for atom in atom_iterator.atom:
+                    resi = int(atom.resi)
+                    if atom.b < args.pLDDT_thr and not resi in parfixed:
+                        if not resi in mobile_residues:
+                            mobile_residues.append(int(atom.resi))
+                    else:
+                        if not resi in fixed_residues:
+                            fixed_residues.append(int(atom.resi))
+                cmd.delete("prot")
+                fixed_dict[name][args.FIXED_CHAIN] = fixed_residues[:]
+                mobile_dict[name][args.FIXED_CHAIN] = mobile_residues[:]
+            except Exception as e:
+                print("Error while calculating fixed positions")
+                print(str(e))
+                fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(FIXED)
+                mobile_dict[name][args.FIXED_CHAIN] = []
         else:
             fixed_dict[name][args.FIXED_CHAIN] = sele_to_list(FIXED)
             mobile_dict[name][args.FIXED_CHAIN] = []
