@@ -7,6 +7,7 @@ wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/fa_to_csv.py
 wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/make_fixed_dict.py
 wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/rank.py
 wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/pmpnn_af2_loop_find_best.py
+wget https://raw.githubusercontent.com/GQChem/HelpScripts/main/pmpnn_af2_loop_fa_to_csv.py
 cd ..
 
 echo
