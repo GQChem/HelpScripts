@@ -150,11 +150,47 @@ else:
 """
 PYMOL PSE CREATION
 """
-def plddt(selection="all"):    
-    cmd.color("blue", f"({selection}) and b > 90")
-    cmd.color("cyan", f"({selection}) and b < 90 and b > 70")
-    cmd.color("yellow", f"({selection}) and b < 70 and b > 50")
-    cmd.color("orange", f"({selection}) and b < 50")
+def plddt(selection="all"):     
+    blue_rgb = [0,76,202]
+    blue = []
+    for c in blue_rgb:
+        blue.append(c/255.0)
+    lightblue_rgb = [73, 196, 238]
+    lightblue = []
+    for c in lightblue_rgb:
+        lightblue.append(c/255.0)
+    yellow_rgb = [255, 213, 57]
+    yellow = []
+    for c in yellow_rgb:
+        yellow.append(c/255.0)
+    orange_rgb = [255, 113, 67]
+    orange = []
+    for c in orange_rgb:
+        orange.append(c/255.0)     
+    cmd.set_color('blue_plddt', blue)
+    cmd.set_color('lightblue_plddt', lightblue)
+    cmd.set_color('yellow_plddt', yellow)
+    cmd.set_color('orange_plddt', orange)
+    #select and color blue
+    blue_upper = 100.0
+    blue_lower = 90.0
+    blue_sel_str = selection + " & ! b < " + str(blue_lower) + " & ! b > " + str(blue_upper)
+    cmd.color('blue_plddt', blue_sel_str)
+    #select and color lightblue
+    lightblue_upper = 90.0
+    lightblue_lower = 70.0
+    lightblue_sel_str = selection + " & ! b < " + str(lightblue_lower) + " & ! b > " + str(lightblue_upper)
+    cmd.color('lightblue_plddt', lightblue_sel_str)
+    #select and color yellow
+    yellow_upper = 70.0
+    yellow_lower = 50.0
+    yellow_sel_str = selection + " & ! b < " + str(yellow_lower) + " & ! b > " + str(yellow_upper)
+    cmd.color('yellow_plddt', yellow_sel_str)
+    #select and color orange
+    orange_upper = 50.0
+    orange_lower = 0.0
+    orange_sel_str = selection + " & ! b < " + str(orange_lower) + " & ! b > " + str(orange_upper)
+    cmd.color('orange_plddt', orange_sel_str)
 cmd.extend('rank_plddt', plddt)
 
 if len(ranked_data) > 0 and args.pymol_best_pse > 0:
