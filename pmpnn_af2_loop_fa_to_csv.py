@@ -4,6 +4,7 @@ parser = argparse.ArgumentParser(description='Makes csv files from ProteinMPNN.f
 parser.add_argument('PMPNN_FA_FOLDER', type=str)
 parser.add_argument('queries_csv_file', type=str)
 parser.add_argument('all_queries_csv_file', type=str)
+parser.add_argument('cycle', type=str)
 
 # Parse the arguments
 args = parser.parse_args()
@@ -68,15 +69,26 @@ for fa in fa_files:
 
 if os.path.exists(args.queries_csv_file): #there were some queries with different sequence
     with open(args.queries_csv_file,"r") as new_queries:
-        new_data = new_queries.readlines() #contains header
+        new_data = [l.strip() for l in new_queries.readlines()] #contains header
         if os.path.exists(args.all_queries_csv_file):
             with open(args.all_queries_csv_file,"w") as all_queries: #there were some data already before
-                all_queries.writelines(new_data)
+                all_queries.write(all_keys_str)
                 all_queries.write("\n")
                 all_queries.writelines(all_data)
+                for nd in new_data[1:]:         
+                    all_queries.write("\n")           
+                    all_queries.write(args.cycle)  
+                    all_queries.write(',')
+                    all_queries.write(nd)
         else:
             with open(args.all_queries_csv_file,"w") as all_queries: #there were some data already before
-                all_queries.writelines(new_data)
+                all_queries.write("cycle,")
+                all_queries.write(new_data[0])
+                for nd in new_data[1:]:         
+                    all_queries.write("\n")           
+                    all_queries.write(args.cycle)  
+                    all_queries.write(',')
+                    all_queries.write(nd)
 else:
     if os.path.exists(args.all_queries_csv_file):
         with open(args.all_queries_csv_file,"w") as all_queries: #there were some data already before
